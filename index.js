@@ -1,5 +1,6 @@
 /*!
  * parse-code-context <https://github.com/jonschlinkert/parse-code-context>
+ * Regex originally sourced and modified from <https://github.com/visionmedia/dox>.
  *
  * Copyright (c) 2015 Jon Schlinkert.
  * Licensed under the MIT license.

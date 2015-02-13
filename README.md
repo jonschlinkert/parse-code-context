@@ -246,6 +246,9 @@ Pull requests and stars are always welcome. For bugs and feature requests, [plea
 
 ## Author
 
+Regex originally sourced and modified from <https://github.com/visionmedia/dox>.
+
+
 **Jon Schlinkert**
  
 + [github/jonschlinkert](https://github.com/jonschlinkert)
