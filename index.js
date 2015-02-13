@@ -7,12 +7,13 @@
 
 'use strict';
 
-module.exports = function (str) {
+module.exports = function (str, i) {
   var match = null;
 
   // function statement
   if (match = /^function[ \t]([\w$]+)[ \t]*([\w\W]+)?/.exec(str)) {
     return {
+      begin: i,
       type: 'function statement',
       name: match[1],
       params: (match[2]).split(/\W/g).filter(Boolean),
@@ -22,6 +23,7 @@ module.exports = function (str) {
     // function expression
   } else if (match = /^var[ \t]*([\w$]+)[ \t]*=[ \t]*function([\w\W]+)?/.exec(str)) {
     return {
+      begin: i,
       type: 'function expression',
       name: match[1],
       params: (match[2]).split(/\W/g).filter(Boolean),
@@ -31,6 +33,7 @@ module.exports = function (str) {
     // module.exports expression
   } else if (match = /^(module\.exports)[ \t]*=[ \t]*function[ \t]([\w$]+)[ \t]*([\w\W]+)?/.exec(str)) {
     return {
+      begin: i,
       type: 'function expression',
       receiver: match[1],
       name: match[2],
@@ -41,6 +44,7 @@ module.exports = function (str) {
     // module.exports method
   } else if (match = /^(module\.exports)[ \t]*=[ \t]*function([\w\W]+)?/.exec(str)) {
     return {
+      begin: i,
       type: 'method',
       receiver: match[1],
       name: '',
@@ -51,6 +55,7 @@ module.exports = function (str) {
     // prototype method
   } else if (match = /^([\w$]+)\.prototype\.([\w$]+)[ \t]*=[ \t]*function([\w\W]+)?/.exec(str)) {
     return {
+      begin: i,
       type: 'prototype method',
       class: match[1],
       name: match[2],
@@ -61,6 +66,7 @@ module.exports = function (str) {
     // prototype property
   } else if (match = /^([\w$]+)\.prototype\.([\w$]+)[ \t]*=[ \t]*([^\n;]+)/.exec(str)) {
     return {
+      begin: i,
       type: 'prototype property',
       class: match[1],
       name: match[2],
@@ -71,6 +77,7 @@ module.exports = function (str) {
     // method
   } else if (match = /^([\w$.]+)\.([\w$]+)[ \t]*=[ \t]*function([\w\W]+)?/.exec(str)) {
     return {
+      begin: i,
       type: 'method',
       receiver: match[1],
       name: match[2],
@@ -81,6 +88,7 @@ module.exports = function (str) {
     // property
   } else if (match = /^([\w$]+)\.([\w$]+)[ \t]*=[ \t]*([^\n;]+)/.exec(str)) {
     return {
+      begin: i,
       type: 'property',
       receiver: match[1],
       name: match[2],
@@ -91,6 +99,7 @@ module.exports = function (str) {
     // declaration
   } else if (match = /^var[ \t]+([\w$]+)[ \t]*=[ \t]*([^\n;]+)/.exec(str)) {
     return {
+      begin: i,
       type: 'declaration',
       name: match[1],
       value: match[2],
