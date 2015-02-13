@@ -1,4 +1,4 @@
-# parse-code-context [![NPM version](https://badge.fury.io/js/parse-code-context.svg)](http://badge.fury.io/js/parse-code-context)
+# parse-code-context [![NPM version](https://badge.fury.io/js/parse-code-context.svg)](http://badge.fury.io/js/parse-code-context)  [![Build Status](https://travis-ci.org/jonschlinkert/parse-code-context.svg)](https://travis-ci.org/jonschlinkert/parse-code-context) 
 
 > Parse code context in a single line of javascript, for functions, variable declarations, methods, prototype properties, prototype methods etc.
 
@@ -16,7 +16,7 @@ var parse = require('parse-code-context');
 
 ## Examples
 
-**function statement**
+### function statement
 
 ```js
 parse("function app(a, b, c) {\n\n}");
@@ -32,7 +32,7 @@ Results in:
   original: 'function app() {\n\n}' }
 ```
 
-**function expression**
+### function expression
 
 ```js
 parse("var app = function(a, b, c) {\n\n}");
@@ -48,7 +48,7 @@ Results in:
   original: 'var app = function() {\n\n}' }
 ```
 
-**`module.exports` function expression**
+### `module.exports` function expression
 
 ```js
 parse("module.exports = function foo(a, b, c) {\n\n}");
@@ -65,7 +65,7 @@ Results in:
   original: 'module.exports = function foo(a, b, c) {\n\n}' }
 ```
 
-**`module.exports` method**
+### `module.exports` method
 
 ```js
 parse("module.exports = function() {\n\n}");
@@ -82,7 +82,7 @@ Results in:
   original: 'module.exports = function() {\n\n}' }
 ```
 
-**prototype method**
+### prototype method
 
 ```js
 parse("Template.prototype.get = function() {}");
@@ -99,7 +99,7 @@ Results in:
   original: 'Template.prototype.get = function() {}' }
 ```
 
-**prototype property**
+### prototype property
 
 ```js
 parse("Template.prototype.enabled = true;\nasdf");
@@ -116,7 +116,7 @@ Results in:
   original: 'Template.prototype.enabled = true;\nasdf' }
 ```
 
-**method**
+### method
 
 ```js
 parse("option.get = function() {}");
@@ -133,7 +133,7 @@ Results in:
   original: 'option.get = function() {}' }
 ```
 
-**property**
+### property
 
 ```js
 parse("option.name = \"delims\";\nasdf");
@@ -150,7 +150,7 @@ Results in:
   original: 'option.name = "delims";\nasdf' }
 ```
 
-**declaration**
+### declaration
 
 ```js
 parse("var name = \"delims\";\nasdf");
@@ -167,7 +167,7 @@ Results in:
 
 ```
 
-**function statement params**
+### function statement params
 
 ```js
 parse("function app(a, b) {\n\n}");
@@ -183,7 +183,7 @@ Results in:
   original: 'function app(a, b) {\n\n}' }
 ```
 
-**function expression params**
+### function expression params
 
 ```js
 parse("var app = function(foo, bar) {\n\n}");
@@ -199,7 +199,7 @@ Results in:
   original: 'var app = function(foo, bar) {\n\n}' }
 ```
 
-**function expression params**
+### function expression params
 
 ```js
 parse("var app=function(foo,bar) {\n\n}");
@@ -215,7 +215,7 @@ Results in:
   original: 'var app=function(foo,bar) {\n\n}' }
 ```
 
-**prototype method params**
+### prototype method params
 
 ```js
 parse("Template.prototype.get = function(key, value, options) {}");
