@@ -2,6 +2,8 @@
 
 > Parse code context in a single line of javascript, for functions, variable declarations, methods, prototype properties, prototype methods etc.
 
+## Install
+
 Install with [npm](https://www.npmjs.com/)
 
 ```sh

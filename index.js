@@ -2,7 +2,7 @@
  * parse-code-context <https://github.com/jonschlinkert/parse-code-context>
  * Regex originally sourced and modified from <https://github.com/visionmedia/dox>.
  *
- * Copyright (c) 2015 Jon Schlinkert.
+ * Copyright (c) 2014-2015 Jon Schlinkert.
  * Licensed under the MIT license.
  */
 
@@ -14,7 +14,7 @@ module.exports = function (str, i) {
   // function statement
   if (match = /^function[ \t]([\w$]+)[ \t]*([\w\W]+)?/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'function statement',
       name: match[1],
       params: (match[2]).split(/\W+/).filter(Boolean),
@@ -24,7 +24,7 @@ module.exports = function (str, i) {
     // function expression
   } else if (match = /^var[ \t]*([\w$]+)[ \t]*=[ \t]*function([\w\W]+)?/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'function expression',
       name: match[1],
       params: (match[2]).split(/\W+/).filter(Boolean),
@@ -34,7 +34,7 @@ module.exports = function (str, i) {
     // module.exports expression
   } else if (match = /^(module\.exports)[ \t]*=[ \t]*function[ \t]([\w$]+)[ \t]*([\w\W]+)?/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'function expression',
       receiver: match[1],
       name: match[2],
@@ -45,7 +45,7 @@ module.exports = function (str, i) {
     // module.exports method
   } else if (match = /^(module\.exports)[ \t]*=[ \t]*function([\w\W]+)?/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'method',
       receiver: match[1],
       name: '',
@@ -56,7 +56,7 @@ module.exports = function (str, i) {
     // prototype method
   } else if (match = /^([\w$]+)\.prototype\.([\w$]+)[ \t]*=[ \t]*function([\w\W]+)?/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'prototype method',
       class: match[1],
       name: match[2],
@@ -67,7 +67,7 @@ module.exports = function (str, i) {
     // prototype property
   } else if (match = /^([\w$]+)\.prototype\.([\w$]+)[ \t]*=[ \t]*([^\n;]+)/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'prototype property',
       class: match[1],
       name: match[2],
@@ -78,7 +78,7 @@ module.exports = function (str, i) {
     // method
   } else if (match = /^([\w$.]+)\.([\w$]+)[ \t]*=[ \t]*function([\w\W]+)?/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'method',
       receiver: match[1],
       name: match[2],
@@ -89,7 +89,7 @@ module.exports = function (str, i) {
     // property
   } else if (match = /^([\w$]+)\.([\w$]+)[ \t]*=[ \t]*([^\n;]+)/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'property',
       receiver: match[1],
       name: match[2],
@@ -100,7 +100,7 @@ module.exports = function (str, i) {
     // declaration
   } else if (match = /^var[ \t]+([\w$]+)[ \t]*=[ \t]*([^\n;]+)/.exec(str)) {
     return {
-      begin: i,
+      start: i,
       type: 'declaration',
       name: match[1],
       value: match[2],
