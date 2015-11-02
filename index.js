@@ -17,7 +17,7 @@ module.exports = function (str, i) {
       begin: i,
       type: 'function statement',
       name: match[1],
-      params: (match[2]).split(/\W/g).filter(Boolean),
+      params: (match[2]).split(/\W+/).filter(Boolean),
       string: match[1] + '()',
       original: str
     };
@@ -27,7 +27,7 @@ module.exports = function (str, i) {
       begin: i,
       type: 'function expression',
       name: match[1],
-      params: (match[2]).split(/\W/g).filter(Boolean),
+      params: (match[2]).split(/\W+/).filter(Boolean),
       string: match[1] + '()',
       original: str
     };
@@ -38,7 +38,7 @@ module.exports = function (str, i) {
       type: 'function expression',
       receiver: match[1],
       name: match[2],
-      params: (match[3]).split(/\W/g).filter(Boolean),
+      params: (match[3]).split(/\W+/).filter(Boolean),
       string: match[1] + '()',
       original: str
     };
@@ -49,7 +49,7 @@ module.exports = function (str, i) {
       type: 'method',
       receiver: match[1],
       name: '',
-      params: (match[2]).split(/\W/g).filter(Boolean),
+      params: (match[2]).split(/\W+/).filter(Boolean),
       string: match[1] + '.' + match[2] + '()',
       original: str
     };
@@ -60,7 +60,7 @@ module.exports = function (str, i) {
       type: 'prototype method',
       class: match[1],
       name: match[2],
-      params: (match[3]).split(/\W/g).filter(Boolean),
+      params: (match[3]).split(/\W+/).filter(Boolean),
       string: match[1] + '.prototype.' + match[2] + '()',
       original: str
     };
@@ -82,7 +82,7 @@ module.exports = function (str, i) {
       type: 'method',
       receiver: match[1],
       name: match[2],
-      params: (match[3]).split(/\W/g).filter(Boolean),
+      params: (match[3]).split(/\W+/).filter(Boolean),
       string: match[1] + '.' + match[2] + '()',
       original: str
     };

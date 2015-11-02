@@ -8,6 +8,7 @@
 
 'use strict';
 
+require('mocha');
 var should = require('should');
 var parse = require('./');
 
