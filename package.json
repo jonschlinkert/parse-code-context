@@ -1,7 +1,7 @@
 {
   "name": "parse-code-context",
   "description": "Parse code context in a single line of javascript, for functions, variable declarations, methods, prototype properties, prototype methods etc.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "homepage": "https://github.com/jonschlinkert/parse-code-context",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
   "repository": "jonschlinkert/parse-code-context",
@@ -41,6 +41,9 @@
     "statement"
   ],
   "verb": {
+    "plugins": [
+      "gulp-format-md"
+    ],
     "related": {
       "list": [
         "code-context",
