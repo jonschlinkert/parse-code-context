@@ -88,7 +88,7 @@ Parser.prototype.parse = function() {
 
 Parser.prototype.init = function() {
   // module.exports method
-  this.use(/^(module\.exports)\s*=\s*function\s*\(([^)]+)/, function(m) {
+  this.use(/^(module\.exports)\s*=\s*function\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'method',
       receiver: m[1],
@@ -99,7 +99,7 @@ Parser.prototype.init = function() {
     };
   });
 
-  this.use(/^(module\.exports)\s*=\s*function\s([\w$]+)\s*\(([^)]+)/, function(m) {
+  this.use(/^(module\.exports)\s*=\s*function\s([\w$]+)\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'function',
       subtype: 'expression',
@@ -110,8 +110,9 @@ Parser.prototype.init = function() {
       original: m.input
     };
   });
+
   // class, possibly exported by name or as a default
-  this.use(/^\s*(export(\s+default)?\s+)?class\s+([\w$]+)(\s+extends\s+([\w$.]+(?:\(.*\))?))?\s*{/, function(m) {
+  this.use(/^\s*(export(\s+default)?\s+)?class\s+([\w$]+)(\s+extends\s+([\w$.]+(?:\(.*\))?))?\s*{/, function(m, parent) {
     return {
       type: 'class',
       ctor: m[3],
@@ -122,7 +123,7 @@ Parser.prototype.init = function() {
   });
 
   // class constructor
-  this.use(/^\s*constructor\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*constructor\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'constructor',
       ctor: this.parent,
@@ -133,7 +134,7 @@ Parser.prototype.init = function() {
   });
 
   // class method
-  this.use(/^\s*(static)?\s*(\*)?\s*([\w$]+|\[.*\])\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*(static)?\s*(\*)?\s*([\w$]+|\[.*\])\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'method',
       ctor: this.parent,
@@ -144,7 +145,7 @@ Parser.prototype.init = function() {
   });
 
   // named function statement, possibly exported by name or as a default
-  this.use(/^\s*(export(\s+default)?\s+)?function\s+([\w$]+)\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*(export(\s+default)?\s+)?function\s+([\w$]+)\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'function',
       subtype: 'statement',
@@ -155,7 +156,7 @@ Parser.prototype.init = function() {
   });
 
   // anonymous function expression exported as a default
-  this.use(/^\s*export\s+default\s+function\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*export\s+default\s+function\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'function',
       name: m[1], // undefined
@@ -165,7 +166,7 @@ Parser.prototype.init = function() {
   });
 
   // function expression
-  this.use(/^return\s+function(?:\s+([\w$]+))?\s*\(([^)]+)/, function(m) {
+  this.use(/^return\s+function(?:\s+([\w$]+))?\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'function',
       subtype: 'expression',
@@ -176,7 +177,7 @@ Parser.prototype.init = function() {
   });
 
   // function expression
-  this.use(/^\s*(?:const|let|var)\s+([\w$]+)\s*=\s*function\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*(?:const|let|var)\s+([\w$]+)\s*=\s*function\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'function',
       subtype: 'expression',
@@ -187,7 +188,7 @@ Parser.prototype.init = function() {
   });
 
   // prototype method
-  this.use(/^\s*([\w$.]+)\s*\.\s*prototype\s*\.\s*([\w$]+)\s*=\s*function\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*([\w$.]+)\s*\.\s*prototype\s*\.\s*([\w$]+)\s*=\s*function\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'prototype method',
       category: 'method',
@@ -199,7 +200,7 @@ Parser.prototype.init = function() {
   });
 
   // prototype property
-  this.use(/^\s*([\w$.]+)\s*\.\s*prototype\s*\.\s*([\w$]+)\s*=\s*([^\n;]+)/, function(m) {
+  this.use(/^\s*([\w$.]+)\s*\.\s*prototype\s*\.\s*([\w$]+)\s*=\s*([^\n;]+)/, function(m, parent) {
     return {
       type: 'prototype property',
       ctor: m[1],
@@ -210,7 +211,7 @@ Parser.prototype.init = function() {
   });
 
   // prototype property without assignment
-  this.use(/^\s*([\w$]+)\s*\.\s*prototype\s*\.\s*([\w$]+)\s*/, function(m) {
+  this.use(/^\s*([\w$]+)\s*\.\s*prototype\s*\.\s*([\w$]+)\s*/, function(m, parent) {
     return {
       type: 'prototype property',
       ctor: m[1],
@@ -220,7 +221,7 @@ Parser.prototype.init = function() {
   });
 
   // inline prototype
-  this.use(/^\s*([\w$.]+)\s*\.\s*prototype\s*=\s*{/, function(m) {
+  this.use(/^\s*([\w$.]+)\s*\.\s*prototype\s*=\s*{/, function(m, parent) {
     return {
       type: 'prototype',
       ctor: m[1],
@@ -230,7 +231,7 @@ Parser.prototype.init = function() {
   });
 
   // Fat arrow function
-  this.use(/^\s*\(*\s*([\w$.]+)\s*\)*\s*=>/, function(m) {
+  this.use(/^\s*\(*\s*([\w$.]+)\s*\)*\s*=>/, function(m, parent) {
     return {
       type: 'function',
       ctor: this.parent,
@@ -240,7 +241,7 @@ Parser.prototype.init = function() {
   });
 
   // inline method
-  this.use(/^\s*([\w$.]+)\s*:\s*function\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*([\w$.]+)\s*:\s*function\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'method',
       ctor: this.parent,
@@ -250,7 +251,7 @@ Parser.prototype.init = function() {
   });
 
   // inline property
-  this.use(/^\s*([\w$.]+)\s*:\s*([^\n;]+)/, function(m) {
+  this.use(/^\s*([\w$.]+)\s*:\s*([^\n;]+)/, function(m, parent) {
     return {
       type: 'property',
       ctor: this.parent,
@@ -261,7 +262,7 @@ Parser.prototype.init = function() {
   });
 
   // inline getter/setter
-  this.use(/^\s*(get|set)\s*([\w$.]+)\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*(get|set)\s*([\w$.]+)\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'property',
       ctor: this.parent,
@@ -271,7 +272,7 @@ Parser.prototype.init = function() {
   });
 
   // method
-  this.use(/^\s*([\w$.]+)\s*\.\s*([\w$]+)\s*=\s*function\s*\(([^)]+)/, function(m) {
+  this.use(/^\s*([\w$.]+)\s*\.\s*([\w$]+)\s*=\s*function\s*\(([^)]+)/, function(m, parent) {
     return {
       type: 'method',
       receiver: m[1],
@@ -282,7 +283,7 @@ Parser.prototype.init = function() {
   });
 
   // property
-  this.use(/^\s*([\w$.]+)\s*\.\s*([\w$]+)\s*=\s*([^\n;]+)/, function(m) {
+  this.use(/^\s*([\w$.]+)\s*\.\s*([\w$]+)\s*=\s*([^\n;]+)/, function(m, parent) {
     return {
       type: 'property',
       receiver: m[1],
@@ -293,7 +294,7 @@ Parser.prototype.init = function() {
   });
 
   // declaration
-  this.use(/^\s*(?:const|let|var)\s+([\w$]+)\s*=\s*([^\n;]+)/, function(m) {
+  this.use(/^\s*(?:const|let|var)\s+([\w$]+)\s*=\s*([^\n;]+)/, function(m, parent) {
     return {
       type: 'declaration',
       name: m[1],
