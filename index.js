@@ -42,7 +42,7 @@ Parser.prototype.name = function(name) {
  *   .use(/function\s*([\w$]+)\s*\(([^)]+)/, function(match) {
  *     return {
  *        name: match[1],
- *        params: match[2].split(/[, ]/)
+ *        params: matc(h[2] || '').split(/[, ]/)
  *     };
  *   })
  * ```
@@ -93,7 +93,7 @@ Parser.prototype.init = function() {
       type: 'method',
       receiver: m[1],
       name: '',
-      params: (m[2]).split(/[, ]+/),
+      params: (m[2] || '').split(/[, ]+/),
       string: m[1] + '.' + m[2] + '()',
       original: m.input
     };
@@ -105,7 +105,7 @@ Parser.prototype.init = function() {
       subtype: 'expression',
       receiver: m[1],
       name: m[2],
-      params: (m[3]).split(/[, ]+/),
+      params: (m[3] || '').split(/[, ]+/),
       string: m[2] + '()',
       original: m.input
     };
@@ -139,7 +139,7 @@ Parser.prototype.init = function() {
       type: 'method',
       ctor: this.parent,
       name: m[2] + m[3],
-      params: m[4].split(/[, ]+/),
+      params: (m[4] || '').split(/[, ]+/),
       string: this.name(m[1] ? '.' : '.prototype.') + m[2] + m[3] + '()'
     };
   });
@@ -150,7 +150,7 @@ Parser.prototype.init = function() {
       type: 'function',
       subtype: 'statement',
       name: m[3],
-      params: m[4].split(/[, ]+/),
+      params: (m[4] || '').split(/[, ]+/),
       string: m[3] + '()'
     };
   });
@@ -160,7 +160,7 @@ Parser.prototype.init = function() {
     return {
       type: 'function',
       name: m[1], // undefined
-      params: m[4].split(/[, ]+/),
+      params: (m[4] || '').split(/[, ]+/),
       string: m[1] + '()'
     };
   });
@@ -171,7 +171,7 @@ Parser.prototype.init = function() {
       type: 'function',
       subtype: 'expression',
       name: m[1],
-      params: m[4].split(/[, ]+/),
+      params: (m[4] || '').split(/[, ]+/),
       string: m[1] + '()'
     };
   });
@@ -182,7 +182,7 @@ Parser.prototype.init = function() {
       type: 'function',
       subtype: 'expression',
       name: m[1],
-      params: m[2].split(/[, ]+/),
+      params: (m[2] || '').split(/[, ]+/),
       string: (m[1] || '') + '()'
     };
   });
@@ -194,7 +194,7 @@ Parser.prototype.init = function() {
       category: 'method',
       ctor: m[1],
       name: m[2],
-      params: m[3].split(/[, ]+/),
+      params: (m[3] || '').split(/[, ]+/),
       string: m[1] + '.prototype.' + m[2] + '()'
     };
   });
@@ -205,7 +205,7 @@ Parser.prototype.init = function() {
       type: 'prototype property',
       ctor: m[1],
       name: m[2],
-      value: m[3].trim(),
+      value: trim(m[3]),
       string: m[1] + '.prototype.' + m[2]
     };
   });
@@ -256,7 +256,7 @@ Parser.prototype.init = function() {
       type: 'property',
       ctor: this.parent,
       name: m[1],
-      value: m[2].trim(),
+      value: trim(m[2]),
       string: this.name('.') + m[1]
     };
   });
@@ -277,7 +277,7 @@ Parser.prototype.init = function() {
       type: 'method',
       receiver: m[1],
       name: m[2],
-      params: m[3].split(/[, ]+/),
+      params: (m[3] || '').split(/[, ]+/),
       string: m[1] + '.' + m[2] + '()'
     };
   });
@@ -288,7 +288,7 @@ Parser.prototype.init = function() {
       type: 'property',
       receiver: m[1],
       name: m[2],
-      value: m[3].trim(),
+      value: trim(m[3]),
       string: m[1] + '.' + m[2]
     };
   });
@@ -298,11 +298,20 @@ Parser.prototype.init = function() {
     return {
       type: 'declaration',
       name: m[1],
-      value: m[2].trim(),
+      value: trim(m[2]),
       string: m[1]
     };
   });
 };
+
+function trim(str) {
+  return toString(str).trim();
+}
+
+function toString(str) {
+  if (!str) return '';
+  return str;
+}
 
 /**
  * Expose an instance of `Parser`
