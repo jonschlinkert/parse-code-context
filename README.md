@@ -1,27 +1,94 @@
-# parse-code-context [![NPM version](https://img.shields.io/npm/v/parse-code-context.svg)](https://www.npmjs.com/package/parse-code-context) [![Build Status](https://img.shields.io/travis/jonschlinkert/parse-code-context.svg)](https://travis-ci.org/jonschlinkert/parse-code-context)
+# parse-code-context [![NPM version](https://img.shields.io/npm/v/parse-code-context.svg?style=flat)](https://www.npmjs.com/package/parse-code-context) [![NPM monthly downloads](https://img.shields.io/npm/dm/parse-code-context.svg?style=flat)](https://npmjs.org/package/parse-code-context) [![NPM total downloads](https://img.shields.io/npm/dt/parse-code-context.svg?style=flat)](https://npmjs.org/package/parse-code-context) [![Linux Build Status](https://img.shields.io/travis/jonschlinkert/parse-code-context.svg?style=flat&label=Travis)](https://travis-ci.org/jonschlinkert/parse-code-context)
 
-> Parse code context in a single line of javascript, for functions, variable declarations, methods, prototype properties, prototype methods etc.
+> Fast and simple way to parse code context for use with documentation from code comments. Parses context from a single line of JavaScript, for functions, variable declarations, methods, prototype properties, prototype methods etc.
+
+Please consider following this project's author, [Jon Schlinkert](https://github.com/jonschlinkert), and consider starring the project to show your :heart: and support.
 
 ## Install
 
-Install with [npm](https://www.npmjs.com/)
+Install with [npm](https://www.npmjs.com/):
 
 ```sh
-$ npm i parse-code-context --save
+$ npm install --save parse-code-context
 ```
+
+## Getting started
+
+* [Usage](#usage)
+* [API](#api)
+* [Examples](#examples)
+* [Custom parsers](#custom-parsers)
 
 ## Usage
 
 ```js
-var parse = require('parse-code-context');
+const parse = require('parse-code-context');
+console.log(parse('function app(a, b, c) {\n\n}'));
 ```
+
+## API
+
+### [Parser](index.js#L18)
+
+Create an instance of `Parser` with the given `string`, optionally passing a `parent` name for namespacing methods
+
+**Params**
+
+* `str` **{String}**
+* `parent` **{String}**
+
+**Example**
+
+```js
+const { Parser } = require('parse-code-context');
+const parser = new Parser('function foo(a, b, c) {}');
+```
+
+### [.name](index.js#L35)
+
+Convenience method for creating a property name
+that is prefixed with the parent namespace, if defined.
+
+**Params**
+
+* `name` **{String}**
+* `returns` **{String}**
+
+### [.capture](index.js#L60)
+
+Register a parser to use (in addition to those already registered as default parsers) with the given `regex` and function.
+
+**Params**
+
+* `regex` **{RegExp}**
+* `fn` **{Function}**
+* `returns` **{Object}**: The instance for chaining
+
+**Example**
+
+```js
+const parser = new Parser('function foo(a, b, c){}');
+  .capture(/function\s*([\w$]+)\s*\(([^)]+)/, (match) => {
+    return {
+       name: match[1],
+       params: matc(h[2] || '').split(/[,\s]/)
+    };
+  });
+```
+
+### [.parse](index.js#L73)
+
+Parse the string passed to the constructor with all registered parsers.
+
+* `returns` **{Object|Null}**
 
 ## Examples
 
 ### function statement
 
 ```js
-parse("function app(a, b, c) {\n\n}");
+const context = parse('function app(a, b, c) {\n\n}');
+console.log(context);
 ```
 
 Results in:
@@ -166,6 +233,7 @@ Results in:
   value: '"delims"',
   string: 'name',
   original: 'var name = "delims";\nasdf' }
+
 ```
 
 ### function statement params
@@ -233,37 +301,81 @@ Results in:
   original: 'Template.prototype.get = function(key, value, options) {}' }
 ```
 
-## Related projects
+## Custom parsers
 
-* [code-context](https://www.npmjs.com/package/code-context): Parse a string of javascript to determine the context for functions, variables and comments based… [more](https://www.npmjs.com/package/code-context) | [homepage](https://github.com/jonschlinkert/code-context)
-* [snapdragon](https://www.npmjs.com/package/snapdragon): snapdragon is an extremely pluggable, powerful and easy-to-use parser-renderer factory. | [homepage](https://github.com/jonschlinkert/snapdragon)
-* [strip-comments](https://www.npmjs.com/package/strip-comments): Strip comments from code. Removes line comments, block comments, the first comment only, or all… [more](https://www.npmjs.com/package/strip-comments) | [homepage](https://github.com/jonschlinkert/strip-comments)
+Instantiate the `Parser` class to register custom parsers.
 
-## Running tests
+```js
+const { Parser} = require('parse-code-context');
+const parser = new Parser();
 
-Install dev dependencies:
+parser.capture(/foo\(([^)]+)\)/, match => {
+  return {
+    params: match[1].split(/[,\s]+/)
+  };
+});
 
-```sh
-$ npm i -d && npm test
+console.log(parser.parse('foo(a, b, c)'));
 ```
 
-## Contributing
+## Credit
 
-Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](https://github.com/jonschlinkert/parse-code-context/issues/new).
+Regex was originally sourced and modified from [https://github.com/visionmedia/dox](https://github.com/visionmedia/dox).
 
-## Author
+## About
+
+<details>
+<summary><strong>Contributing</strong></summary>
+
+Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](../../issues/new).
+
+</details>
+
+<details>
+<summary><strong>Running Tests</strong></summary>
+
+Running and reviewing unit tests is a great way to get familiarized with a library and its API. You can install dependencies and run tests with the following command:
+
+```sh
+$ npm install && npm test
+```
+
+</details>
+
+<details>
+<summary><strong>Building docs</strong></summary>
+
+_(This project's readme.md is generated by [verb](https://github.com/verbose/verb-generate-readme), please don't edit the readme directly. Any changes to the readme must be made in the [.verb.md](.verb.md) readme template.)_
+
+To generate the readme, run the following command:
+
+```sh
+$ npm install -g verbose/verb#dev verb-generate-readme && verb
+```
+
+</details>
+
+### Related projects
+
+You might also be interested in these projects:
+
+* [code-context](https://www.npmjs.com/package/code-context): Parse a string of javascript to determine the context for functions, variables and comments based… [more](https://github.com/jonschlinkert/code-context) | [homepage](https://github.com/jonschlinkert/code-context "Parse a string of javascript to determine the context for functions, variables and comments based on the code that follows.")
+* [snapdragon](https://www.npmjs.com/package/snapdragon): Easy-to-use plugin system for creating powerful, fast and versatile parsers and compilers, with built-in source-map… [more](https://github.com/here-be/snapdragon) | [homepage](https://github.com/here-be/snapdragon "Easy-to-use plugin system for creating powerful, fast and versatile parsers and compilers, with built-in source-map support.")
+* [strip-comments](https://www.npmjs.com/package/strip-comments): Strip comments from code. Removes line comments, block comments, the first comment only, or all… [more](https://github.com/jonschlinkert/strip-comments) | [homepage](https://github.com/jonschlinkert/strip-comments "Strip comments from code. Removes line comments, block comments, the first comment only, or all comments. Optionally leave protected comments unharmed.")
+
+### Author
 
 **Jon Schlinkert**
 
-* [github/jonschlinkert](https://github.com/jonschlinkert)
-* [twitter/jonschlinkert](http://twitter.com/jonschlinkert)
-Regex originally sourced and modified from [https://github.com/visionmedia/dox](https://github.com/visionmedia/dox).
+* [GitHub Profile](https://github.com/jonschlinkert)
+* [Twitter Profile](https://twitter.com/jonschlinkert)
+* [LinkedIn Profile](https://linkedin.com/in/jonschlinkert)
 
-## License
+### License
 
-Copyright © 2015 [Jon Schlinkert](https://github.com/jonschlinkert)
-Released under the MIT license.
+Copyright © 2018, [Jon Schlinkert](https://github.com/jonschlinkert).
+Released under the [MIT License](LICENSE).
 
 ***
 
-_This file was generated by [verb](https://github.com/verbose/verb) on December 20, 2015._
+_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.8.0, on November 24, 2018._

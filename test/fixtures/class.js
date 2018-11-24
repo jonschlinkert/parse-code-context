@@ -7,62 +7,63 @@
  */
 export default class FooBar extends Foo.Baz {
 
-    /*
-     * construct a Foo
-     * @constructor
-     * @param {Object} options constructor options
-     */
-    constructor(options) {
-        this.options = options
-    }
+  /*
+   * construct a FooBar
+   * @constructor
+   * @param {Object} options constructor options
+   */
 
-    /*
-     * Method of the Foo class.
-     * @return {Overflow}
-     */
-    bar() {
-        return 99999999999999999999999999999999999999999999999999999999999999999
-    }
+  constructor(options) {
+    this.options = options
+  }
 
-    /**
-     * Static method of the Foo class.
-     * @return {String}
-     */
-    static staticMethod() {
-      return 'static method'
-    }
+  /*
+   * Method of the FooBar class.
+   * @return {Overflow}
+   */
+  bar() {
+    return 99999999999999999999999999999999999999999999999999999999999999999
+  }
 
-    /**
-     * Static generator method of the Foo class.
-     * @return {String}
-     */
-    static *staticGeneratorMethod() {
-      return 'static method'
-    }
+  /**
+   * Static method of the FooBar class.
+   * @return {String}
+   */
+  static staticMethod() {
+    return 'static method'
+  }
 
-    /**
-     * Generator method with computed name.
-     * @return {String}
-     */
-    * [Symbol.iterator]() {
-      for (let arg of this.args) yield arg
-    }
+  /**
+   * Static generator method of the FooBar class.
+   * @return {String}
+   */
+  static * staticGeneratorMethod() {
+    return 'static method'
+  }
 
-    /*
-     * Setter for the blah property.
-     */
-    set blah() {
-        this.blah = "blah"
-    }
+  /**
+   * Generator method with computed name.
+   * @return {String}
+   */
+  *[Symbol.iterator]() {
+    for (let arg of this.args) yield arg
+  }
 
-    /*
-     * Getter for the blah property.
-     * @return {String}
-     */
-    get blah() {
-        return this.blah
-    }
+  /*
+   * Getter for the blah property.
+   */
+  get blah() {
+    this._blah = "blah"
+    return this._blah;
+  }
 
+  /*
+   * Getter for the whatever property.
+   * @return {String}
+   */
+  get whatever() {
+    return this.whatever;
+  }
 }
 
 /*
@@ -70,28 +71,28 @@ export default class FooBar extends Foo.Baz {
  */
 export class Baz extends FooBar {
 
-    /*
-     * @param {Object} options constructor options
-     */
-    constructor(options) {
-        this.options = options
-    }
+  /*
+   * @param {Object} options constructor options
+   */
+  constructor(options) {
+    this.options = options
+  }
 }
 
 /*
  * @class Lorem
  */
 class Lorem {
-    constructor(options) {
-        this.options = options
-    }
+  constructor(options) {
+    this.options = options
+  }
 }
 
 /*
  * @class Lorem
  */
 class Ipsum extends mixin(Foo.Bar, Baz) {
-    constructor(options) {
-        this.options = options
-    }
+  constructor(options) {
+    this.options = options
+  }
 }

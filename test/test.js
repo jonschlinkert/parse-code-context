@@ -1,279 +1,338 @@
 /*!
  * parse-code-context <https://github.com/jonschlinkert/parse-code-context>
  *
- * Copyright (c) 2014-2015 Jon Schlinkert.
- * Some of the regex was sourced from https://github.com/visionmedia/dox
+ * Copyright (c) 2014-present Jon Schlinkert.
+ * Some of the regex was originally sourced from https://github.com/visionmedia/dox
  * Licensed under the MIT License
  */
 
 'use strict';
 
 require('mocha');
-var assert = require('assert');
-var fs = require('fs');
-var path = require('path');
-var should = require('should');
-var parse = require('..');
+const fs = require('fs');
+const path = require('path');
+const assert = require('assert');
+const { Parser } = require('..');
+let parser;
 
 function fixtures(fp, cb) {
   return fs.readFile(path.join('test/fixtures', fp), 'utf8', cb);
 }
 
-describe('constructor:', function() {
-  it('should create an instance of Parser', function() {
-    var parser = new parse.Parser();
-    assert(parser instanceof parse.Parser);
-  });
+describe('parse-code-context', () => {
+  beforeEach(() => (parser = new Parser()));
 
-  it('should register parsers for matching', function() {
-    var parser = new parse.Parser('foo(a, b, c)');
-    parser.use(/foo\(([^)]+)\)/, function (m) {
-      return {
-        params: m[1].split(/[, ]+/)
-      }
+  describe('constructor:', () => {
+    it('should create an instance of Parser', () => {
+      assert(parser instanceof Parser);
     });
-    var ctx = parser.parse();
-    assert.deepEqual(ctx.params, ['a', 'b', 'c']);
-  });
 
-  it('should support passing the parent name on the constructor', function() {
-    var parser = new parse.Parser('enabled: true;\nasdf', 'Foo');
-    var ctx = parser.parse();
-    ctx.ctor.should.equal('Foo');
-    ctx.type.should.equal('property');
-    ctx.name.should.equal('enabled');
-    ctx.string.should.equal('Foo.enabled');
-  });
-});
-
-describe('parse context:', function() {
-  it('should return null when no matches are found', function() {
-    var ctx = parse('foo');
-    assert.equal(ctx, null);
-  });
-
-  it('should extract function statements', function() {
-    var ctx = parse('function app(a, b, c) {\n\n}');
-    ctx.type.should.equal('function');
-    ctx.subtype.should.equal('statement');
-    ctx.name.should.equal('app');
-    ctx.params.should.eql([ 'a', 'b', 'c' ]);
-  });
-
-  it('should extract function statements', function() {
-    var ctx = parse('function app(a, b, c) {\n\n}');
-    ctx.type.should.equal('function');
-    ctx.subtype.should.equal('statement');
-    ctx.name.should.equal('app');
-    ctx.params.should.eql([ 'a', 'b', 'c' ]);
-  });
-
-  it('should extract function expressions', function() {
-    var ctx = parse('var app = function(a, b, c) {\n\n}');
-    ctx.type.should.equal('function');
-    ctx.subtype.should.equal('expression');
-    ctx.name.should.equal('app');
-    ctx.params.should.eql([ 'a', 'b', 'c' ]);
-  });
-
-  it('should extract `module.exports` function expressions', function() {
-    var ctx = parse('module.exports = function foo(a, b, c) {\n\n}');
-    ctx.type.should.equal('function');
-    ctx.subtype.should.equal('expression');
-    ctx.name.should.equal('foo');
-    ctx.params.should.eql([ 'a', 'b', 'c' ]);
-  });
-
-  it('should support class, extends and is exported as default', function() {
-    var ctx = parse('export default class FooBar extends Foo.Baz {');
-    ctx.type.should.be.equal('class');
-    ctx.name.should.be.equal('FooBar');
-    ctx.ctor.should.be.equal('FooBar');
-    ctx.extends.should.be.equal('Foo.Baz');
-    ctx.string.should.be.equal('new FooBar()');
-  });
-
-  it('should parse inline prototype properties', function() {
-    var ctx = parse('App.prototype = {');
-    ctx.type.should.equal('prototype');
-    ctx.ctor.should.equal('App');
-    ctx.name.should.equal('App');
-    ctx.string.should.equal('App.prototype');
-  });
-
-  it('should extract prototype methods', function() {
-    var ctx = parse('App.prototype.get = function(a, b, c) {}');
-    ctx.type.should.equal('prototype method');
-    ctx.ctor.should.equal('App');
-    ctx.name.should.equal('get');
-    ctx.params.should.eql([ 'a', 'b', 'c' ]);
-  });
-
-  it('should support passing a parent name to properties', function() {
-    var ctx = parse('enabled: true;\nasdf', 'Foo');
-    ctx.ctor.should.equal('Foo');
-    ctx.type.should.equal('property');
-    ctx.name.should.equal('enabled');
-    ctx.string.should.equal('Foo.enabled');
-  });
-
-  it('should extract prototype properties', function() {
-    var ctx = parse('App.prototype.enabled = true;\nasdf');
-    ctx.type.should.equal('prototype property');
-    ctx.ctor.should.equal('App');
-    ctx.name.should.equal('enabled');
-    ctx.value.should.equal('true');
-  });
-
-  it('should extract methods', function() {
-    var ctx = parse('option.get = function(a, b, c) {}');
-    ctx.type.should.equal('method');
-    ctx.receiver.should.equal('option');
-    ctx.name.should.equal('get');
-    ctx.params.should.eql([ 'a', 'b', 'c' ]);
-  });
-
-  it('should extract properties', function() {
-    var ctx = parse('option.name = "delims";\nasdf');
-    ctx.type.should.equal('property');
-    ctx.receiver.should.equal('option');
-    ctx.name.should.equal('name');
-    ctx.value.should.equal('"delims"');
-  });
-
-  it('should extract declarations', function() {
-    var ctx = parse('var name = "delims";\nasdf');
-    ctx.type.should.equal('declaration');
-    ctx.name.should.equal('name');
-    ctx.value.should.equal('"delims"');
-  });
-});
-
-describe('context params:', function() {
-  it('should extract function statement params', function() {
-    var ctx = parse('function app(a, b) {\n\n}');
-    ctx.type.should.equal('function');
-    ctx.subtype.should.equal('statement');
-    ctx.params.should.eql(['a', 'b']);
-  });
-
-  it('should extract function expression params', function() {
-    var ctx = parse('var app = function(foo, bar) {\n\n}');
-    ctx.type.should.equal('function');
-    ctx.subtype.should.equal('expression');
-    ctx.params.should.eql(['foo', 'bar']);
-  });
-
-  it('should extract function expression params', function() {
-    var ctx = parse('var app=function(foo,bar) {\n\n}');
-    ctx.type.should.equal('function');
-    ctx.subtype.should.equal('expression');
-    ctx.params.should.eql(['foo', 'bar']);
-  });
-
-  it('should extract prototype method params', function() {
-    var ctx = parse('App.prototype.get = function(key, value, options) {}');
-    ctx.type.should.equal('prototype method');
-    ctx.ctor.should.equal('App');
-    ctx.params.should.eql(['key', 'value', 'options']);
-  });
-
-  it('should extract class', function(cb) {
-    fixtures('class.js', function(err, str) {
-      var matches = [];
-      str.split('\n').forEach(function (line) {
-        line = line.replace(/^\s+/, '');
-        var ctx = parse(line);
-        if (ctx) {
-          matches.push(ctx);
-        }
+    it('should register parsers for matching', () => {
+      parser.capture(/foo\(([^)]+)\)/, m => {
+        return {
+          params: m[1].split(/[,\s]+/)
+        };
       });
 
-      assert.equal(matches[0].type, 'class');
-      assert.equal(matches[0].ctor, 'FooBar');
-      assert.equal(matches[0].name, 'FooBar');
-      assert.equal(matches[0].extends, 'Foo.Baz');
-      assert.equal(matches[0].string, 'new FooBar()');
+      const ctx = parser.parse('foo(a, b, c)');
+      assert.deepEqual(ctx.params, ['a', 'b', 'c']);
+    });
 
-      assert.equal(matches[1].type, 'constructor');
-      assert.equal(matches[1].ctor, undefined);
-      assert.equal(matches[1].name, 'constructor');
-      assert.equal(matches[1].params[0], '');
-      assert.equal(matches[1].string, 'constructor()');
+    it('should support passing the parent name on the constructor', () => {
+      const ctx = parser.parse('enabled: true;\nasdf', 'Foo');
+      assert.equal(ctx.ctor, 'Foo');
+      assert.equal(ctx.type, 'property');
+      assert.equal(ctx.name, 'enabled');
+      assert.equal(ctx.string, 'Foo.enabled');
+    });
+  });
 
-      assert.equal(matches[2].type, 'property');
-      assert.equal(matches[2].receiver, 'this');
-      assert.equal(matches[2].name, 'options');
-      assert.equal(matches[2].value, 'options');
-      assert.equal(matches[2].string, 'this.options');
+  describe('parse context:', () => {
+    it('should return null when no matches are found', () => {
+      let ctx = parser.parse('foo');
+      assert.equal(ctx, null);
+    });
 
-      assert.equal(matches[3].type, 'method');
-      assert.equal(matches[3].ctor, undefined);
-      assert.equal(matches[3].name, 'undefinedfor');
-      assert.deepEqual(matches[3].params, ['let', 'arg', 'of', 'this.args']);
-      assert.equal(matches[3].string, 'undefinedfor()');
+    it('should extract function statements', () => {
+      let ctx = parser.parse('function app(a, b, c) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'statement');
+      assert.equal(ctx.name, 'app');
+      assert.deepEqual(ctx.params, [ 'a', 'b', 'c' ]);
+    });
 
-      assert.equal(matches[4].type, 'property');
-      assert.equal(matches[4].receiver, 'this');
-      assert.equal(matches[4].name, 'blah');
-      assert.equal(matches[4].value, '"blah"');
-      assert.equal(matches[4].string, 'this.blah');
+    it('should extract function statements', () => {
+      let ctx = parser.parse('function app(a, b, c) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'statement');
+      assert.equal(ctx.name, 'app');
+      assert.deepEqual(ctx.params, [ 'a', 'b', 'c' ]);
+    });
 
-      assert.equal(matches[5].type, 'class');
-      assert.equal(matches[5].ctor, 'Baz');
-      assert.equal(matches[5].name, 'Baz');
-      assert.equal(matches[5].extends, 'FooBar');
-      assert.equal(matches[5].string, 'new Baz()');
+    it('should extract function expressions', () => {
+      let ctx = parser.parse('let app = function(a, b, c) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'expression');
+      assert.equal(ctx.name, 'app');
+      assert.deepEqual(ctx.params, [ 'a', 'b', 'c' ]);
+    });
 
-      assert.equal(matches[6].type, 'constructor');
-      assert.equal(matches[6].ctor, undefined);
-      assert.equal(matches[6].name, 'constructor');
-      assert.deepEqual(matches[6].params, ['']);
-      assert.equal(matches[6].string, 'constructor()');
+    it('should extract `module.exports` function expressions', () => {
+      let ctx = parser.parse('module.exports = function foo(a, b, c) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'expression');
+      assert.equal(ctx.name, 'foo');
+      assert.deepEqual(ctx.params, [ 'a', 'b', 'c' ]);
+    });
 
-      assert.equal(matches[7].type, 'property');
-      assert.equal(matches[7].receiver, 'this');
-      assert.equal(matches[7].name, 'options');
-      assert.equal(matches[7].value, 'options');
-      assert.equal(matches[7].string, 'this.options');
+    it('should support class, extends and is exported as default', () => {
+      let ctx = parser.parse('export default class FooBar extends Foo.Baz {');
+      assert.equal(ctx.type, 'class');
+      assert.equal(ctx.name, 'FooBar');
+      assert.equal(ctx.ctor, 'FooBar');
+      assert.equal(ctx.extends, 'Foo.Baz');
+      assert.equal(ctx.string, 'new FooBar()');
+    });
 
-      assert.equal(matches[8].type, 'class');
-      assert.equal(matches[8].ctor, 'Lorem');
-      assert.equal(matches[8].name, 'Lorem');
-      assert.equal(matches[8].extends, undefined);
-      assert.equal(matches[8].string, 'new Lorem()');
+    it('should parse inline prototype properties', () => {
+      let ctx = parser.parse('App.prototype = {');
+      assert.equal(ctx.type, 'prototype');
+      assert.equal(ctx.ctor, 'App');
+      assert.equal(ctx.name, 'App');
+      assert.equal(ctx.string, 'App.prototype');
+    });
 
-      assert.equal(matches[9].type, 'constructor');
-      assert.equal(matches[9].ctor, undefined);
-      assert.equal(matches[9].name, 'constructor');
-      assert.deepEqual(matches[9].params, ['']);
-      assert.equal(matches[9].string, 'constructor()');
+    it('should extract prototype methods', () => {
+      let ctx = parser.parse('App.prototype.get = function(a, b, c) {}');
+      assert.equal(ctx.type, 'prototype method');
+      assert.equal(ctx.ctor, 'App');
+      assert.equal(ctx.name, 'get');
+      assert.deepEqual(ctx.params, [ 'a', 'b', 'c' ]);
+    });
 
-      assert.equal(matches[10].type, 'property');
-      assert.equal(matches[10].receiver, 'this');
-      assert.equal(matches[10].name, 'options');
-      assert.equal(matches[10].value, 'options');
-      assert.equal(matches[10].string, 'this.options');
+    it('should support passing a parent name to properties', () => {
+      let ctx = parser.parse('enabled: true;\nasdf', 'Foo');
+      assert.equal(ctx.ctor, 'Foo');
+      assert.equal(ctx.type, 'property');
+      assert.equal(ctx.name, 'enabled');
+      assert.equal(ctx.string, 'Foo.enabled');
+    });
 
-      assert.equal(matches[11].type, 'class');
-      assert.equal(matches[11].ctor, 'Ipsum');
-      assert.equal(matches[11].name, 'Ipsum');
-      assert.equal(matches[11].extends, 'mixin(Foo.Bar, Baz)');
-      assert.equal(matches[11].string, 'new Ipsum()');
+    it('should extract prototype properties', () => {
+      let ctx = parser.parse('App.prototype.enabled = true;\nasdf');
+      assert.equal(ctx.type, 'prototype property');
+      assert.equal(ctx.ctor, 'App');
+      assert.equal(ctx.name, 'enabled');
+      assert.equal(ctx.value, 'true');
+    });
 
-      assert.equal(matches[12].type, 'constructor');
-      assert.equal(matches[12].ctor, undefined);
-      assert.equal(matches[12].name, 'constructor');
-      assert.deepEqual(matches[12].params, ['']);
-      assert.equal(matches[12].string, 'constructor()');
+    it('should extract methods', () => {
+      let ctx = parser.parse('option.get = function(a, b, c) {}');
+      assert.equal(ctx.type, 'method');
+      assert.equal(ctx.receiver, 'option');
+      assert.equal(ctx.name, 'get');
+      assert.deepEqual(ctx.params, [ 'a', 'b', 'c' ]);
+    });
 
-      assert.equal(matches[13].type, 'property');
-      assert.equal(matches[13].receiver, 'this');
-      assert.equal(matches[13].name, 'options');
-      assert.equal(matches[13].value, 'options');
-      assert.equal(matches[13].string, 'this.options');
+    it('should extract properties', () => {
+      let ctx = parser.parse('option.name = "delims";\nasdf');
+      assert.equal(ctx.type, 'property');
+      assert.equal(ctx.receiver, 'option');
+      assert.equal(ctx.name, 'name');
+      assert.equal(ctx.value, '"delims"');
+    });
 
-      cb();
+    it('should extract declarations', () => {
+      let ctx = parser.parse('let name = "delims";\nasdf');
+      assert.equal(ctx.type, 'declaration');
+      assert.equal(ctx.name, 'name');
+      assert.equal(ctx.value, '"delims"');
+    });
+  });
+
+  describe('context params:', () => {
+    it('should extract function statement params', () => {
+      let ctx = parser.parse('function app(a, b) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'statement');
+      assert.deepEqual(ctx.params, ['a', 'b']);
+    });
+
+    it('should extract function statement params with newlines', () => {
+      let ctx = parser.parse('function app(\n a,\n b) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'statement');
+      assert.deepEqual(ctx.params, ['a', 'b']);
+    });
+
+    it('should extract function expression params', () => {
+      let ctx = parser.parse('let app = function(foo, bar) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'expression');
+      assert.deepEqual(ctx.params, ['foo', 'bar']);
+    });
+
+    it('should extract function expression params with newlines', () => {
+      let ctx = parser.parse('let app = function(foo,\n bar) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'expression');
+      assert.deepEqual(ctx.params, ['foo', 'bar']);
+    });
+
+    it('should extract function expression params', () => {
+      let ctx = parser.parse('let app=function(foo,bar) {\n\n}');
+      assert.equal(ctx.type, 'function');
+      assert.equal(ctx.subtype, 'expression');
+      assert.deepEqual(ctx.params, ['foo', 'bar']);
+    });
+
+    it('should extract prototype method params', () => {
+      let ctx = parser.parse('App.prototype.get = function(key, value, options) {}');
+      assert.equal(ctx.type, 'prototype method');
+      assert.equal(ctx.ctor, 'App');
+      assert.deepEqual(ctx.params, ['key', 'value', 'options']);
+    });
+
+    it('should extract class', (cb) => {
+      fixtures('class.js', (err, str) => {
+        if (err) return cb(err);
+
+        let matches = [];
+        let i = 0;
+        str.split('\n').forEach(function(line) {
+          line = line.replace(/^\s+/, '');
+          let ctx = parser.parse(line);
+          if (ctx) {
+            matches.push(ctx);
+          }
+        });
+
+        assert.equal(matches[i].type, 'class');
+        assert.equal(matches[i].ctor, 'FooBar');
+        assert.equal(matches[i].name, 'FooBar');
+        assert.equal(matches[i].extends, 'Foo.Baz');
+        assert.equal(matches[i].string, 'new FooBar()');
+
+        i++;
+        assert.equal(matches[i].type, 'constructor');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, 'constructor');
+        assert.equal(matches[i].params[0], '');
+        assert.equal(matches[i].string, 'constructor()');
+
+        i++;
+        assert.equal(matches[i].type, 'property');
+        assert.equal(matches[i].receiver, 'this');
+        assert.equal(matches[i].name, 'options');
+        assert.equal(matches[i].value, 'options');
+        assert.equal(matches[i].string, 'this.options');
+
+        i++;
+        assert.equal(matches[i].type, 'method');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, 'bar');
+        assert.deepEqual(matches[i].params, ['']);
+        assert.equal(matches[i].string, 'bar()');
+
+        i++;
+        assert.equal(matches[i].type, 'method');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, 'staticMethod');
+        assert.deepEqual(matches[i].params, ['']);
+        assert.equal(matches[i].string, 'staticMethod()');
+
+        i++;
+        assert.equal(matches[i].type, 'method');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, '*staticGeneratorMethod');
+        assert.deepEqual(matches[i].params, ['']);
+        assert.equal(matches[i].string, '*staticGeneratorMethod()');
+
+        i++;
+        assert.equal(matches[i].type, 'method');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, '*[Symbol.iterator]');
+        assert.deepEqual(matches[i].params, ['']);
+        assert.equal(matches[i].string, '*[Symbol.iterator]()');
+
+        i++;
+        assert.equal(matches[i].type, 'method');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, 'for');
+        assert.deepEqual(matches[i].params, ['let', 'arg', 'of', 'this.args']);
+        assert.equal(matches[i].string, 'for()');
+
+        i++;
+        assert.equal(matches[i].type, 'property');
+        assert.equal(matches[i].receiver, 'this');
+        assert.equal(matches[i].name, '_blah');
+        assert.equal(matches[i].value, '"blah"');
+        assert.equal(matches[i].string, 'this._blah');
+
+        i++;
+        assert.equal(matches[i].type, 'class');
+        assert.equal(matches[i].ctor, 'Baz');
+        assert.equal(matches[i].name, 'Baz');
+        assert.equal(matches[i].extends, 'FooBar');
+        assert.equal(matches[i].string, 'new Baz()');
+
+        i++;
+        assert.equal(matches[i].type, 'constructor');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, 'constructor');
+        assert.deepEqual(matches[6].params, ['']);
+        assert.equal(matches[i].string, 'constructor()');
+
+        i++;
+        assert.equal(matches[i].type, 'property');
+        assert.equal(matches[i].receiver, 'this');
+        assert.equal(matches[i].name, 'options');
+        assert.equal(matches[i].value, 'options');
+        assert.equal(matches[i].string, 'this.options');
+
+        i++;
+        assert.equal(matches[i].type, 'class');
+        assert.equal(matches[i].ctor, 'Lorem');
+        assert.equal(matches[i].name, 'Lorem');
+        assert.equal(matches[i].extends, undefined);
+        assert.equal(matches[i].string, 'new Lorem()');
+
+        i++;
+        assert.equal(matches[i].type, 'constructor');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, 'constructor');
+        assert.deepEqual(matches[i].params, ['']);
+        assert.equal(matches[i].string, 'constructor()');
+
+        i++;
+        assert.equal(matches[i].type, 'property');
+        assert.equal(matches[i].receiver, 'this');
+        assert.equal(matches[i].name, 'options');
+        assert.equal(matches[i].value, 'options');
+        assert.equal(matches[i].string, 'this.options');
+
+        i++;
+        assert.equal(matches[i].type, 'class');
+        assert.equal(matches[i].ctor, 'Ipsum');
+        assert.equal(matches[i].name, 'Ipsum');
+        assert.equal(matches[i].extends, 'mixin(Foo.Bar, Baz)');
+        assert.equal(matches[i].string, 'new Ipsum()');
+
+        i++;
+        assert.equal(matches[i].type, 'constructor');
+        assert.equal(matches[i].ctor, undefined);
+        assert.equal(matches[i].name, 'constructor');
+        assert.deepEqual(matches[i].params, ['']);
+        assert.equal(matches[i].string, 'constructor()');
+
+        i++;
+        assert.equal(matches[i].type, 'property');
+        assert.equal(matches[i].receiver, 'this');
+        assert.equal(matches[i].name, 'options');
+        assert.equal(matches[i].value, 'options');
+        assert.equal(matches[i].string, 'this.options');
+        cb();
+      });
     });
   });
 });

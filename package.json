@@ -1,6 +1,6 @@
 {
   "name": "parse-code-context",
-  "description": "Parse code context in a single line of javascript, for functions, variable declarations, methods, prototype properties, prototype methods etc.",
+  "description": "Fast and simple way to parse code context for use with documentation from code comments. Parses context from a single line of JavaScript, for functions, variable declarations, methods, prototype properties, prototype methods etc.",
   "version": "0.2.2",
   "homepage": "https://github.com/jonschlinkert/parse-code-context",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
@@ -12,20 +12,16 @@
   "files": [
     "index.js"
   ],
+  "main": "index.js",
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=6"
   },
   "scripts": {
     "test": "mocha"
   },
   "devDependencies": {
-    "gulp": "^3.9.0",
-    "gulp-eslint": "^1.0.0",
-    "gulp-format-md": "^0.1.4",
-    "gulp-istanbul": "^0.10.2",
-    "gulp-mocha": "^2.1.3",
-    "mocha": "*",
-    "should": "*"
+    "gulp-format-md": "^2.0.0",
+    "mocha": "^5.2.0"
   },
   "keywords": [
     "args",
@@ -42,15 +38,23 @@
     "statement"
   ],
   "verb": {
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
     "plugins": [
       "gulp-format-md"
     ],
     "related": {
       "list": [
         "code-context",
-        "strip-comments",
-        "snapdragon"
+        "snapdragon",
+        "strip-comments"
       ]
+    },
+    "lint": {
+      "reflinks": true
     }
   }
 }
