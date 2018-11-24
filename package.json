@@ -1,7 +1,7 @@
 {
   "name": "parse-code-context",
   "description": "Fast and simple way to parse code context for use with documentation from code comments. Parses context from a single line of JavaScript, for functions, variable declarations, methods, prototype properties, prototype methods etc.",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "homepage": "https://github.com/jonschlinkert/parse-code-context",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
   "repository": "jonschlinkert/parse-code-context",
